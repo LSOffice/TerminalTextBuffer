@@ -218,18 +218,87 @@ private fun printScreen(
     buf: TerminalBuffer,
     attrs: AttrsState,
 ) {
-    val (col, row) = buf.getCursorPosition()
+    val (cursorCol, cursorRow) = buf.getCursorPosition()
+    val reset = "\u001B[0m"
     println("┌${"─".repeat(buf.width)}┐")
     for (r in 0 until buf.height) {
-        val lineStr = buf.getLine(r, fromScrollback = false)
-        if (r == row) {
-            val marked = lineStr.toMutableList()
-            marked[col] = if (marked[col] == ' ') '█' else marked[col]
-            println("│${marked.joinToString("")}│ ← cursor")
-        } else {
-            println("│$lineStr│")
+        print("│")
+        for (c in 0 until buf.width) {
+            val cell = buf.screen[r].getCell(c)
+            val isCursor = r == cursorRow && c == cursorCol
+            if (isCursor) {
+                // render cursor as inverted block
+                print("\u001B[7m${cell.char ?: '█'}$reset")
+            } else {
+                val ansi = ansiCode(cell.fg, cell.bg, cell.bold, cell.italic, cell.underline)
+                if (ansi.isEmpty()) {
+                    print(cell.char ?: ' ')
+                } else {
+                    print("$ansi${cell.char ?: ' '}$reset")
+                }
+            }
         }
+        val cursorMarker = if (r == cursorRow) " ← cursor" else ""
+        println("│$cursorMarker")
     }
     println("└${"─".repeat(buf.width)}┘")
-    println("cursor ($col, $row)  scrollback: ${buf.scrollback.size}  attrs: ${attrs.describe()}")
+    println("cursor ($cursorCol, $cursorRow)  scrollback: ${buf.scrollback.size}  attrs: ${attrs.describe()}")
 }
+
+private fun ansiCode(
+    fg: ForegroundColor,
+    bg: BackgroundColor,
+    bold: Boolean,
+    italic: Boolean,
+    underline: Boolean,
+): String {
+    val codes = mutableListOf<Int>()
+    if (bold) codes += 1
+    if (italic) codes += 3
+    if (underline) codes += 4
+    fgCode(fg)?.let { codes += it }
+    bgCode(bg)?.let { codes += it }
+    return if (codes.isEmpty()) "" else "\u001B[${codes.joinToString(";")}m"
+}
+
+private fun fgCode(fg: ForegroundColor): Int? =
+    when (fg) {
+        ForegroundColor.Default -> null
+        ForegroundColor.Black -> 30
+        ForegroundColor.Red -> 31
+        ForegroundColor.Green -> 32
+        ForegroundColor.Yellow -> 33
+        ForegroundColor.Blue -> 34
+        ForegroundColor.Magenta -> 35
+        ForegroundColor.Cyan -> 36
+        ForegroundColor.White -> 37
+        ForegroundColor.BrightBlack -> 90
+        ForegroundColor.BrightRed -> 91
+        ForegroundColor.BrightGreen -> 92
+        ForegroundColor.BrightYellow -> 93
+        ForegroundColor.BrightBlue -> 94
+        ForegroundColor.BrightMagenta -> 95
+        ForegroundColor.BrightCyan -> 96
+        ForegroundColor.BrightWhite -> 97
+    }
+
+private fun bgCode(bg: BackgroundColor): Int? =
+    when (bg) {
+        BackgroundColor.Default -> null
+        BackgroundColor.Black -> 40
+        BackgroundColor.Red -> 41
+        BackgroundColor.Green -> 42
+        BackgroundColor.Yellow -> 43
+        BackgroundColor.Blue -> 44
+        BackgroundColor.Magenta -> 45
+        BackgroundColor.Cyan -> 46
+        BackgroundColor.White -> 47
+        BackgroundColor.BrightBlack -> 100
+        BackgroundColor.BrightRed -> 101
+        BackgroundColor.BrightGreen -> 102
+        BackgroundColor.BrightYellow -> 103
+        BackgroundColor.BrightBlue -> 104
+        BackgroundColor.BrightMagenta -> 105
+        BackgroundColor.BrightCyan -> 106
+        BackgroundColor.BrightWhite -> 107
+    }
