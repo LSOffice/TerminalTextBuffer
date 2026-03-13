@@ -8,6 +8,10 @@ data class Cell(
     val bold: Boolean = false,
     val italic: Boolean = false,
     val underline: Boolean = false,
+    // left half of a 2-column wide character (CJK, fullwidth)
+    val isWide: Boolean = false,
+    // right-half placeholder — char is null, no attributes; just marks the column as occupied
+    val isContinuation: Boolean = false,
 ) {
     fun toAttributes(): CellAttributes = CellAttributes(fg, bg, bold, italic, underline)
 

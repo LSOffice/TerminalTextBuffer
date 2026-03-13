@@ -41,6 +41,14 @@ class Line(val width: Int) {
             for (cell in cells) append(cell.char ?: ' ')
         }
 
+    // returns a new line at newWidth — truncates on shrink, pads with EMPTY on grow
+    fun resizedTo(newWidth: Int): Line {
+        val newLine = Line(newWidth)
+        val copyUpTo = minOf(width, newWidth)
+        for (i in 0 until copyUpTo) newLine.setCell(i, getCell(i))
+        return newLine
+    }
+
     // deep copy - which is used before pushing to scrollback
     fun clone(): Line {
         val copy = Line(width)
