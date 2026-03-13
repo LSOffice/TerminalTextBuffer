@@ -1,13 +1,14 @@
 package org.LSOffice
 
-// For testing
+// for testing
 fun main() {
     var buf = TerminalBuffer(width = 20, height = 5, maxScrollback = 10)
+    var currentAttrs = AttrsState()
 
     println("TerminalBuffer REPL — 20×5, scrollback 10")
-    println("commands: write <text> | move <up|down|left|right> [n] | pos <col> <row> |")
-    println("          scroll | clear | clearall | screen | all | cursor | help | quit")
+    println("commands: write | insert | move | pos | attr | reset | scroll | clear | clearall | all | new | help | quit")
     println()
+    printScreen(buf, currentAttrs)
 
     while (true) {
         print("> ")
@@ -17,10 +18,8 @@ fun main() {
         val arg = parts.getOrNull(1)?.trim() ?: ""
 
         when (cmd) {
-            "write" -> {
-                buf.writeText(arg)
-                printScreen(buf)
-            }
+            "write" -> buf.writeText(arg)
+            "insert" -> buf.insertText(arg)
             "move" -> {
                 val moveParts = arg.split(" ")
                 val dir =
@@ -35,9 +34,7 @@ fun main() {
                     println("unknown direction: ${moveParts[0]}")
                     continue
                 }
-                val n = moveParts.getOrNull(1)?.toIntOrNull() ?: 1
-                buf.moveCursor(dir, n)
-                println("cursor → ${buf.getCursorPosition()}")
+                buf.moveCursor(dir, moveParts.getOrNull(1)?.toIntOrNull() ?: 1)
             }
             "pos" -> {
                 val p = arg.split(" ")
@@ -48,62 +45,184 @@ fun main() {
                     continue
                 }
                 buf.setCursorPosition(col, row)
-                println("cursor → ${buf.getCursorPosition()}")
             }
-            "scroll" -> {
-                buf.insertEmptyLineAtBottom()
-                printScreen(buf)
+            "attr" -> {
+                if (arg.isEmpty()) {
+                    println(currentAttrs.describe())
+                    continue
+                }
+                val updated = parseAttr(arg, currentAttrs)
+                if (updated == null) {
+                    println("unknown attr. try: fg red | bg blue | bold | italic | underline")
+                    continue
+                }
+                currentAttrs = updated
+                buf.setAttributes(currentAttrs.fg, currentAttrs.bg, currentAttrs.bold, currentAttrs.italic, currentAttrs.underline)
+                println("attrs: ${currentAttrs.describe()}")
+                continue
             }
-            "clear" -> {
-                buf.clearScreen()
-                printScreen(buf)
+            "reset" -> {
+                currentAttrs = AttrsState()
+                buf.resetAttributes()
+                println("attrs reset")
+                continue
             }
-            "clearall" -> {
-                buf.clearAll()
-                printScreen(buf)
-            }
-            "screen" -> printScreen(buf)
+            "scroll" -> buf.insertEmptyLineAtBottom()
+            "clear" -> buf.clearScreen()
+            "clearall" -> buf.clearAll()
             "all" -> {
                 println("--- scrollback + screen ---")
                 println(buf.getAllContent())
                 println("---")
+                continue
             }
-            "cursor" -> println("cursor → ${buf.getCursorPosition()}")
             "new" -> {
                 val p = arg.split(" ")
                 val w = p[0].toIntOrNull() ?: 20
                 val h = p.getOrNull(1)?.toIntOrNull() ?: 5
                 val s = p.getOrNull(2)?.toIntOrNull() ?: 10
                 buf = TerminalBuffer(w, h, s)
+                currentAttrs = AttrsState()
                 println("new buffer $w×$h, scrollback $s")
             }
             "help" -> {
-                println("write <text>               write text at cursor")
-                println("move <up|down|left|right>  move cursor (optional n steps)")
-                println("pos <col> <row>            set cursor position")
-                println("scroll                     insert empty line at bottom (scrolls up)")
-                println("clear                      clear screen, reset cursor")
-                println("clearall                   clear screen + scrollback")
-                println("screen                     print current screen")
-                println("all                        print scrollback + screen")
-                println("cursor                     show cursor position")
-                println("new [w] [h] [scrollback]   create a new buffer")
-                println("quit                       exit")
+                println("write <text>                    write text at cursor")
+                println("insert <text>                   insert text at cursor (shifts existing)")
+                println("move <up|down|left|right> [n]   move cursor")
+                println("pos <col> <row>                 set cursor position")
+                println("attr [fg|bg <color>|bold|italic|underline|no-bold|no-italic|no-underline]")
+                println("                                set attributes (no arg = show current)")
+                println("  colors: default black red green yellow blue magenta cyan white")
+                println("          bright-black bright-red bright-green bright-yellow")
+                println("          bright-blue bright-magenta bright-cyan bright-white")
+                println("reset                           reset attributes to defaults")
+                println("scroll                          insert empty line at bottom")
+                println("clear                           clear screen, reset cursor")
+                println("clearall                        clear screen + scrollback")
+                println("all                             print scrollback + screen")
+                println("new [w] [h] [scrollback]        create a new buffer")
+                println("quit                            exit")
+                continue
             }
             "quit", "exit", "q" -> break
-            "" -> {}
-            else -> println("unknown command: $cmd  (type help)")
+            "" -> continue
+            else -> {
+                println("unknown command: $cmd  (type help)")
+                continue
+            }
         }
+
+        printScreen(buf, currentAttrs)
     }
 }
 
-private fun printScreen(buf: TerminalBuffer) {
+// holds the REPL's view of current attributes so we can display them in the prompt
+private data class AttrsState(
+    val fg: ForegroundColor = ForegroundColor.Default,
+    val bg: BackgroundColor = BackgroundColor.Default,
+    val bold: Boolean = false,
+    val italic: Boolean = false,
+    val underline: Boolean = false,
+) {
+    fun describe(): String {
+        val flags =
+            listOfNotNull(
+                if (bold) "bold" else null,
+                if (italic) "italic" else null,
+                if (underline) "underline" else null,
+            )
+        val flagStr = if (flags.isEmpty()) "" else " ${flags.joinToString("+")}"
+        return "fg=${fg.name.lowercase()} bg=${bg.name.lowercase()}$flagStr"
+    }
+}
+
+private fun parseAttr(
+    arg: String,
+    current: AttrsState,
+): AttrsState? {
+    val tokens = arg.lowercase().split(" ")
+    return when (tokens[0]) {
+        "fg" -> parseFg(tokens.getOrNull(1), current)
+        "bg" -> parseBg(tokens.getOrNull(1), current)
+        "bold" -> current.copy(bold = true)
+        "no-bold" -> current.copy(bold = false)
+        "italic" -> current.copy(italic = true)
+        "no-italic" -> current.copy(italic = false)
+        "underline" -> current.copy(underline = true)
+        "no-underline" -> current.copy(underline = false)
+        else -> null
+    }
+}
+
+private fun parseFg(
+    name: String?,
+    current: AttrsState,
+): AttrsState? {
+    val color = parseFgColor(name ?: return null) ?: return null
+    return current.copy(fg = color)
+}
+
+private fun parseBg(
+    name: String?,
+    current: AttrsState,
+): AttrsState? {
+    val color = parseBgColor(name ?: return null) ?: return null
+    return current.copy(bg = color)
+}
+
+private fun parseFgColor(name: String): ForegroundColor? =
+    when (name) {
+        "default" -> ForegroundColor.Default
+        "black" -> ForegroundColor.Black
+        "red" -> ForegroundColor.Red
+        "green" -> ForegroundColor.Green
+        "yellow" -> ForegroundColor.Yellow
+        "blue" -> ForegroundColor.Blue
+        "magenta" -> ForegroundColor.Magenta
+        "cyan" -> ForegroundColor.Cyan
+        "white" -> ForegroundColor.White
+        "bright-black" -> ForegroundColor.BrightBlack
+        "bright-red" -> ForegroundColor.BrightRed
+        "bright-green" -> ForegroundColor.BrightGreen
+        "bright-yellow" -> ForegroundColor.BrightYellow
+        "bright-blue" -> ForegroundColor.BrightBlue
+        "bright-magenta" -> ForegroundColor.BrightMagenta
+        "bright-cyan" -> ForegroundColor.BrightCyan
+        "bright-white" -> ForegroundColor.BrightWhite
+        else -> null
+    }
+
+private fun parseBgColor(name: String): BackgroundColor? =
+    when (name) {
+        "default" -> BackgroundColor.Default
+        "black" -> BackgroundColor.Black
+        "red" -> BackgroundColor.Red
+        "green" -> BackgroundColor.Green
+        "yellow" -> BackgroundColor.Yellow
+        "blue" -> BackgroundColor.Blue
+        "magenta" -> BackgroundColor.Magenta
+        "cyan" -> BackgroundColor.Cyan
+        "white" -> BackgroundColor.White
+        "bright-black" -> BackgroundColor.BrightBlack
+        "bright-red" -> BackgroundColor.BrightRed
+        "bright-green" -> BackgroundColor.BrightGreen
+        "bright-yellow" -> BackgroundColor.BrightYellow
+        "bright-blue" -> BackgroundColor.BrightBlue
+        "bright-magenta" -> BackgroundColor.BrightMagenta
+        "bright-cyan" -> BackgroundColor.BrightCyan
+        "bright-white" -> BackgroundColor.BrightWhite
+        else -> null
+    }
+
+private fun printScreen(
+    buf: TerminalBuffer,
+    attrs: AttrsState,
+) {
     val (col, row) = buf.getCursorPosition()
     println("┌${"─".repeat(buf.width)}┐")
     for (r in 0 until buf.height) {
         val lineStr = buf.getLine(r, fromScrollback = false)
         if (r == row) {
-            // mark cursor position with brackets
             val marked = lineStr.toMutableList()
             marked[col] = if (marked[col] == ' ') '█' else marked[col]
             println("│${marked.joinToString("")}│ ← cursor")
@@ -112,5 +231,5 @@ private fun printScreen(buf: TerminalBuffer) {
         }
     }
     println("└${"─".repeat(buf.width)}┘")
-    println("cursor ($col, $row)  scrollback: ${buf.scrollback.size}")
+    println("cursor ($col, $row)  scrollback: ${buf.scrollback.size}  attrs: ${attrs.describe()}")
 }
