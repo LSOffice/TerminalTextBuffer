@@ -2,11 +2,10 @@ package org.LSOffice
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 class CellTest {
-
     @Test
     fun `EMPTY has null char and default attributes`() {
         val e = Cell.empty

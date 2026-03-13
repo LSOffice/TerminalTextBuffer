@@ -23,14 +23,18 @@ fun main() {
             }
             "move" -> {
                 val moveParts = arg.split(" ")
-                val dir = when (moveParts[0].lowercase()) {
-                    "up"    -> CursorDirection.Up
-                    "down"  -> CursorDirection.Down
-                    "left"  -> CursorDirection.Left
-                    "right" -> CursorDirection.Right
-                    else    -> null
+                val dir =
+                    when (moveParts[0].lowercase()) {
+                        "up" -> CursorDirection.Up
+                        "down" -> CursorDirection.Down
+                        "left" -> CursorDirection.Left
+                        "right" -> CursorDirection.Right
+                        else -> null
+                    }
+                if (dir == null) {
+                    println("unknown direction: ${moveParts[0]}")
+                    continue
                 }
-                if (dir == null) { println("unknown direction: ${moveParts[0]}"); continue }
                 val n = moveParts.getOrNull(1)?.toIntOrNull() ?: 1
                 buf.moveCursor(dir, n)
                 println("cursor → ${buf.getCursorPosition()}")
@@ -39,7 +43,10 @@ fun main() {
                 val p = arg.split(" ")
                 val col = p[0].toIntOrNull()
                 val row = p.getOrNull(1)?.toIntOrNull()
-                if (col == null || row == null) { println("usage: pos <col> <row>"); continue }
+                if (col == null || row == null) {
+                    println("usage: pos <col> <row>")
+                    continue
+                }
                 buf.setCursorPosition(col, row)
                 println("cursor → ${buf.getCursorPosition()}")
             }
@@ -68,7 +75,7 @@ fun main() {
                 val h = p.getOrNull(1)?.toIntOrNull() ?: 5
                 val s = p.getOrNull(2)?.toIntOrNull() ?: 10
                 buf = TerminalBuffer(w, h, s)
-                println("new buffer ${w}×${h}, scrollback $s")
+                println("new buffer $w×$h, scrollback $s")
             }
             "help" -> {
                 println("write <text>               write text at cursor")
@@ -105,5 +112,5 @@ private fun printScreen(buf: TerminalBuffer) {
         }
     }
     println("└${"─".repeat(buf.width)}┘")
-    println("cursor (${col}, ${row})  scrollback: ${buf.scrollback.size}")
+    println("cursor ($col, $row)  scrollback: ${buf.scrollback.size}")
 }

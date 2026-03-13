@@ -6,7 +6,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotSame
 
 class LineTest {
-
     @Test
     fun `cells initialise to EMPTY`() {
         val line = Line(5)

@@ -5,7 +5,7 @@ enum class CursorDirection { Up, Down, Left, Right }
 class TerminalBuffer(
     val width: Int,
     val height: Int,
-    val maxScrollback: Int
+    val maxScrollback: Int,
 ) {
     // screen is always exactly height lines; scrollback grows from the top
     val screen: ArrayDeque<Line> = ArrayDeque()
@@ -28,41 +28,50 @@ class TerminalBuffer(
         repeat(height) { screen.addLast(Line(width)) }
     }
 
-    // --- attributes ---
+    // attributes functions
 
     fun setAttributes(
         fg: ForegroundColor = ForegroundColor.Default,
         bg: BackgroundColor = BackgroundColor.Default,
         bold: Boolean = false,
         italic: Boolean = false,
-        underline: Boolean = false
+        underline: Boolean = false,
     ) {
-        currentFg = fg; currentBg = bg
-        currentBold = bold; currentItalic = italic; currentUnderline = underline
+        currentFg = fg
+        currentBg = bg
+        currentBold = bold
+        currentItalic = italic
+        currentUnderline = underline
     }
 
     fun resetAttributes() = setAttributes()
 
-    // --- cursor ---
+    // cursor functions
 
     fun getCursorPosition(): Pair<Int, Int> = Pair(cursorCol, cursorRow)
 
-    fun setCursorPosition(col: Int, row: Int) {
+    fun setCursorPosition(
+        col: Int,
+        row: Int,
+    ) {
         cursorCol = col.coerceIn(0, width - 1)
         cursorRow = row.coerceIn(0, height - 1)
     }
 
-    fun moveCursor(direction: CursorDirection, n: Int = 1) {
+    fun moveCursor(
+        direction: CursorDirection,
+        n: Int = 1,
+    ) {
         if (n <= 0) return
         when (direction) {
-            CursorDirection.Up    -> cursorRow = (cursorRow - n).coerceAtLeast(0)
-            CursorDirection.Down  -> cursorRow = (cursorRow + n).coerceAtMost(height - 1)
-            CursorDirection.Left  -> cursorCol = (cursorCol - n).coerceAtLeast(0)
+            CursorDirection.Up -> cursorRow = (cursorRow - n).coerceAtLeast(0)
+            CursorDirection.Down -> cursorRow = (cursorRow + n).coerceAtMost(height - 1)
+            CursorDirection.Left -> cursorCol = (cursorCol - n).coerceAtLeast(0)
             CursorDirection.Right -> cursorCol = (cursorCol + n).coerceAtMost(width - 1)
         }
     }
 
-    // --- editing ---
+    // editing functions
 
     fun writeText(text: String) {
         for (ch in text) {
@@ -98,7 +107,11 @@ class TerminalBuffer(
     }
 
     // shift [col..width-2] right by 1, overflow spills to next row recursively; last row discards
-    private fun insertCharAt(col: Int, row: Int, ch: Char) {
+    private fun insertCharAt(
+        col: Int,
+        row: Int,
+        ch: Char,
+    ) {
         val line = screen[row]
         val overflowCell = line.getCell(width - 1)
         for (i in width - 1 downTo col + 1) line.setCell(i, line.getCell(i - 1))
@@ -108,7 +121,10 @@ class TerminalBuffer(
         }
     }
 
-    fun fillLine(row: Int, ch: Char?) {
+    fun fillLine(
+        row: Int,
+        ch: Char?,
+    ) {
         val r = row.coerceIn(0, height - 1)
         screen[r].fill(ch)
         // apply current attributes to each cell
@@ -117,7 +133,7 @@ class TerminalBuffer(
         }
     }
 
-    // --- scrollback ---
+    // implementing scrollback
 
     fun insertEmptyLineAtBottom() {
         val evicted = screen.removeFirst()
@@ -127,32 +143,52 @@ class TerminalBuffer(
         // cursor position unchanged
     }
 
-    // --- content access ---
+    // content access functions
 
-    fun getChar(col: Int, row: Int, fromScrollback: Boolean = false): Char? {
+    fun getChar(
+        col: Int,
+        row: Int,
+        fromScrollback: Boolean = false,
+    ): Char? {
         val source = if (fromScrollback) scrollback else screen
-        if (row < 0 || row >= source.size) throw IndexOutOfBoundsException("row $row out of bounds")
-        if (col < 0 || col >= width) throw IndexOutOfBoundsException("col $col out of bounds")
+        if (row < 0 || row >= source.size) {
+            throw IndexOutOfBoundsException("row $row out of bounds")
+        }
+        if (col < 0 || col >= width) {
+            throw IndexOutOfBoundsException("col $col out of bounds")
+        }
         return source[row].getCell(col).char
     }
 
-    fun getAttributes(col: Int, row: Int, fromScrollback: Boolean = false): CellAttributes {
+    fun getAttributes(
+        col: Int,
+        row: Int,
+        fromScrollback: Boolean = false,
+    ): CellAttributes {
         val source = if (fromScrollback) scrollback else screen
-        if (row < 0 || row >= source.size) throw IndexOutOfBoundsException("row $row out of bounds")
-        if (col < 0 || col >= width) throw IndexOutOfBoundsException("col $col out of bounds")
+        if (row < 0 || row >= source.size) {
+            throw IndexOutOfBoundsException("row $row out of bounds")
+        }
+        if (col < 0 || col >= width) {
+            throw IndexOutOfBoundsException("col $col out of bounds")
+        }
         return source[row].getCell(col).toAttributes()
     }
 
-    fun getLine(row: Int, fromScrollback: Boolean = false): String {
+    fun getLine(
+        row: Int,
+        fromScrollback: Boolean = false,
+    ): String {
         val source = if (fromScrollback) scrollback else screen
-        if (row < 0 || row >= source.size) throw IndexOutOfBoundsException("row $row out of bounds")
+        if (row < 0 || row >= source.size) {
+            throw IndexOutOfBoundsException("row $row out of bounds")
+        }
         return source[row].toDisplayString()
     }
 
     fun getScreenContent(): String = screen.joinToString("\n") { it.toDisplayString() }
 
-    fun getAllContent(): String =
-        (scrollback + screen).joinToString("\n") { it.toDisplayString() }
+    fun getAllContent(): String = (scrollback + screen).joinToString("\n") { it.toDisplayString() }
 
     // resets visible area and cursor; scrollback is intentionally untouched
     fun clearScreen() {

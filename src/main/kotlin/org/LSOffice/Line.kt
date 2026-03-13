@@ -10,18 +10,23 @@ class Line(val width: Int) {
     }
 
     fun getCell(col: Int): Cell {
-        if (col !in 0..<width)
+        if (col !in 0..<width) {
             throw IndexOutOfBoundsException(
-                "col $col out of bounds for width $width"
+                "col $col out of bounds for width $width",
             )
+        }
         return cells[col]
     }
 
-    fun setCell(col: Int, cell: Cell) {
-        if (col !in 0..<width)
+    fun setCell(
+        col: Int,
+        cell: Cell,
+    ) {
+        if (col !in 0..<width) {
             throw IndexOutOfBoundsException(
-                "col $col out of bounds for width $width"
+                "col $col out of bounds for width $width",
             )
+        }
         cells[col] = cell
     }
 
@@ -31,9 +36,10 @@ class Line(val width: Int) {
     }
 
     // null char renders as space so the string is always exactly width chars
-    fun toDisplayString(): String = buildString(width) {
-        for (cell in cells) append(cell.char ?: ' ')
-    }
+    fun toDisplayString(): String =
+        buildString(width) {
+            for (cell in cells) append(cell.char ?: ' ')
+        }
 
     // deep copy - which is used before pushing to scrollback
     fun clone(): Line {

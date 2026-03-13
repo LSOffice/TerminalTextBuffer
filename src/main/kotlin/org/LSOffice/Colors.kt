@@ -4,16 +4,42 @@ package org.LSOffice
 // default lets the terminal decide
 enum class ForegroundColor {
     Default,
-    Black, Red, Green, Yellow, Blue, Magenta, Cyan, White,
-    BrightBlack, BrightRed, BrightGreen, BrightYellow,
-    BrightBlue, BrightMagenta, BrightCyan, BrightWhite
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
 }
 
 enum class BackgroundColor {
     Default,
-    Black, Red, Green, Yellow, Blue, Magenta, Cyan, White,
-    BrightBlack, BrightRed, BrightGreen, BrightYellow,
-    BrightBlue, BrightMagenta, BrightCyan, BrightWhite
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
 }
 
 // snapshot of display attributes
@@ -23,5 +49,5 @@ data class CellAttributes(
     val bg: BackgroundColor = BackgroundColor.Default,
     val bold: Boolean = false,
     val italic: Boolean = false,
-    val underline: Boolean = false
+    val underline: Boolean = false,
 )
