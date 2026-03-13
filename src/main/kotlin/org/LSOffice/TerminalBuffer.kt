@@ -88,7 +88,18 @@ class TerminalBuffer(
                         return
                     }
                 }
-                screen[cursorRow].setCell(cursorCol, Cell(ch, currentFg, currentBg, currentBold, currentItalic, currentUnderline, isWide = true))
+                screen[cursorRow].setCell(
+                    cursorCol,
+                    Cell(
+                        ch,
+                        currentFg,
+                        currentBg,
+                        currentBold,
+                        currentItalic,
+                        currentUnderline,
+                        isWide = true,
+                    ),
+                )
                 screen[cursorRow].setCell(cursorCol + 1, Cell(null, isContinuation = true))
                 cursorCol += 2
             } else {

@@ -32,9 +32,11 @@ tasks.jacocoTestReport {
     }
     // exclude Main.kt from coverage — it's a REPL, not production logic
     classDirectories.setFrom(
-        files(classDirectories.files.map {
-            fileTree(it) { exclude("**/MainKt*.class", "**/AttrsState*.class") }
-        })
+        files(
+            classDirectories.files.map {
+                fileTree(it) { exclude("**/MainKt*.class", "**/AttrsState*.class") }
+            },
+        ),
     )
 }
 kotlin {
