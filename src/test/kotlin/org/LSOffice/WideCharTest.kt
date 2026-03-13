@@ -7,7 +7,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WideCharTest {
-
     @Test
     fun `charWidth returns 1 for ascii`() {
         assertEquals(1, charWidth('A'))
@@ -16,14 +15,14 @@ class WideCharTest {
 
     @Test
     fun `charWidth returns 2 for CJK ideograph`() {
-        assertEquals(2, charWidth('你'))  // U+4F60 CJK unified
-        assertEquals(2, charWidth('日'))  // U+65E5
-        assertEquals(2, charWidth('あ'))  // U+3042 hiragana
+        assertEquals(2, charWidth('你')) // U+4F60 CJK unified
+        assertEquals(2, charWidth('日')) // U+65E5
+        assertEquals(2, charWidth('あ')) // U+3042 hiragana
     }
 
     @Test
     fun `charWidth returns 2 for fullwidth latin`() {
-        assertEquals(2, charWidth('Ａ'))  // U+FF21 fullwidth A
+        assertEquals(2, charWidth('Ａ')) // U+FF21 fullwidth A
     }
 
     @Test
@@ -54,7 +53,7 @@ class WideCharTest {
         // A=0, 你=1-2(wide+cont), B=3
         assertEquals('A', buf.getChar(0, 0))
         assertEquals('你', buf.getChar(1, 0))
-        assertNull(buf.getChar(2, 0))      // continuation
+        assertNull(buf.getChar(2, 0)) // continuation
         assertEquals('B', buf.getChar(3, 0))
         assertEquals(Pair(4, 0), buf.getCursorPosition())
     }
@@ -62,7 +61,7 @@ class WideCharTest {
     @Test
     fun `writeText wide char at last column pads and wraps to next row`() {
         val buf = TerminalBuffer(4, 3, 0)
-        buf.setCursorPosition(3, 0)  // only 1 col left
+        buf.setCursorPosition(3, 0) // only 1 col left
         buf.writeText("你")
         // col 3 padded with empty, wide char wraps to row 1
         assertEquals(Cell.empty, buf.screen[0].getCell(3))
@@ -74,7 +73,7 @@ class WideCharTest {
     @Test
     fun `writeText wide char at last column of last row stops`() {
         val buf = TerminalBuffer(4, 2, 0)
-        buf.setCursorPosition(3, 1)  // last col, last row
+        buf.setCursorPosition(3, 1) // last col, last row
         buf.writeText("你")
         // can't write — treated same as stop at last cell
         assertEquals(Pair(3, 1), buf.getCursorPosition())
@@ -87,7 +86,7 @@ class WideCharTest {
         val s = buf.getLine(0)
         assertEquals(5, s.length)
         assertEquals('你', s[0])
-        assertEquals(' ', s[1])  // continuation renders as space
+        assertEquals(' ', s[1]) // continuation renders as space
         assertEquals('A', s[2])
     }
 
@@ -108,7 +107,7 @@ class WideCharTest {
     @Test
     fun `insertText wide char shifts existing content by 2`() {
         val buf = TerminalBuffer(6, 2, 0)
-        buf.writeText("ABCD")  // cols 0-3
+        buf.writeText("ABCD") // cols 0-3
         buf.setCursorPosition(0, 0)
         buf.insertText("你")
         // 你(wide)+cont at 0-1, ABCD shift to 2-5
@@ -123,7 +122,7 @@ class WideCharTest {
     @Test
     fun `insertText wide char overflows last char to next row`() {
         val buf = TerminalBuffer(4, 2, 0)
-        buf.writeText("ABCD")  // fills row 0
+        buf.writeText("ABCD") // fills row 0
         buf.setCursorPosition(0, 0)
         buf.insertText("你")
         // 你+cont at 0-1, A B at 2-3; C D overflow
@@ -131,7 +130,7 @@ class WideCharTest {
         assertEquals('你', buf.getChar(0, 0))
         assertEquals('A', buf.getChar(2, 0))
         assertEquals('B', buf.getChar(3, 0))
-        assertEquals('C', buf.getChar(0, 1))  // overflow
+        assertEquals('C', buf.getChar(0, 1)) // overflow
     }
 
     @Test

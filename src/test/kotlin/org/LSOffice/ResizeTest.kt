@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class ResizeTest {
-
     @Test
     fun `resize wider pads lines with empty cells`() {
         val buf = TerminalBuffer(3, 2, 0)
