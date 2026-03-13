@@ -64,6 +64,15 @@ class LineTest {
     }
 
     @Test
+    fun `minimum valid width 1 works`() {
+        val line = Line(1)
+        assertEquals(Cell.empty, line.getCell(0))
+        line.setCell(0, Cell('X'))
+        assertEquals('X', line.getCell(0).char)
+        assertEquals("X", line.toDisplayString())
+    }
+
+    @Test
     fun `constructor throws for width less than 1`() {
         assertFailsWith<IllegalArgumentException> { Line(0) }
         assertFailsWith<IllegalArgumentException> { Line(-1) }

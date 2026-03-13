@@ -111,6 +111,15 @@ class WriteTextTest {
     }
 
     @Test
+    fun `writeText when cursor already at last cell writes one char and stays`() {
+        val buf = TerminalBuffer(3, 2, 0)
+        buf.setCursorPosition(2, 1)
+        buf.writeText("Z")
+        assertEquals('Z', buf.getChar(2, 1))
+        assertEquals(Pair(2, 1), buf.getCursorPosition())
+    }
+
+    @Test
     fun `fillLine does not move cursor`() {
         val buf = TerminalBuffer(5, 3, 0)
         buf.setCursorPosition(3, 2)

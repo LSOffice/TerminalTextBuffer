@@ -81,6 +81,16 @@ class ScrollbackTest {
     }
 
     @Test
+    fun `maxScrollback 0 stays empty across multiple scrolls`() {
+        val buf = TerminalBuffer(3, 2, 0)
+        repeat(10) {
+            buf.fillLine(0, 'X')
+            buf.insertEmptyLineAtBottom()
+        }
+        assertTrue(buf.scrollback.isEmpty())
+    }
+
+    @Test
     fun `scrollback ordering oldest to newest`() {
         val buf = TerminalBuffer(1, 2, 5)
         buf.fillLine(0, 'A')

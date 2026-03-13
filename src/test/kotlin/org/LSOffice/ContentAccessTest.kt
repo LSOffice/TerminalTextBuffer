@@ -55,10 +55,34 @@ class ContentAccessTest {
     }
 
     @Test
+    fun `getChar throws on out-of-bounds row in scrollback`() {
+        val buf = TerminalBuffer(5, 2, 10)
+        buf.insertEmptyLineAtBottom() // 1 line in scrollback
+        assertFailsWith<IndexOutOfBoundsException> { buf.getChar(0, -1, fromScrollback = true) }
+        assertFailsWith<IndexOutOfBoundsException> { buf.getChar(0, 1, fromScrollback = true) }
+    }
+
+    @Test
+    fun `getChar throws on out-of-bounds col in scrollback`() {
+        val buf = TerminalBuffer(5, 2, 10)
+        buf.insertEmptyLineAtBottom()
+        assertFailsWith<IndexOutOfBoundsException> { buf.getChar(-1, 0, fromScrollback = true) }
+        assertFailsWith<IndexOutOfBoundsException> { buf.getChar(5, 0, fromScrollback = true) }
+    }
+
+    @Test
     fun `getAttributes throws on out-of-bounds`() {
         val buf = TerminalBuffer(5, 3, 0)
         assertFailsWith<IndexOutOfBoundsException> { buf.getAttributes(0, 99) }
         assertFailsWith<IndexOutOfBoundsException> { buf.getAttributes(99, 0) }
+    }
+
+    @Test
+    fun `getAttributes throws on out-of-bounds in scrollback`() {
+        val buf = TerminalBuffer(5, 2, 10)
+        buf.insertEmptyLineAtBottom()
+        assertFailsWith<IndexOutOfBoundsException> { buf.getAttributes(0, 1, fromScrollback = true) }
+        assertFailsWith<IndexOutOfBoundsException> { buf.getAttributes(99, 0, fromScrollback = true) }
     }
 
     @Test
@@ -79,6 +103,14 @@ class ContentAccessTest {
         val buf = TerminalBuffer(5, 3, 0)
         assertFailsWith<IndexOutOfBoundsException> { buf.getLine(-1) }
         assertFailsWith<IndexOutOfBoundsException> { buf.getLine(3) }
+    }
+
+    @Test
+    fun `getLine throws on out-of-bounds row in scrollback`() {
+        val buf = TerminalBuffer(5, 2, 10)
+        buf.insertEmptyLineAtBottom() // 1 line in scrollback
+        assertFailsWith<IndexOutOfBoundsException> { buf.getLine(-1, fromScrollback = true) }
+        assertFailsWith<IndexOutOfBoundsException> { buf.getLine(1, fromScrollback = true) }
     }
 
     @Test

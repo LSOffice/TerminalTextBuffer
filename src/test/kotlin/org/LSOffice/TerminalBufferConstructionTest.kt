@@ -37,6 +37,15 @@ class TerminalBufferConstructionTest {
     }
 
     @Test
+    fun `minimum valid dimensions 1x1 work`() {
+        val buf = TerminalBuffer(1, 1, 0)
+        assertEquals(1, buf.width)
+        assertEquals(1, buf.height)
+        assertEquals(1, buf.screen.size)
+        assertEquals(Cell.empty, buf.screen[0].getCell(0))
+    }
+
+    @Test
     fun `width less than 1 throws`() {
         assertFailsWith<IllegalArgumentException> { TerminalBuffer(0, 5, 10) }
         assertFailsWith<IllegalArgumentException> { TerminalBuffer(-1, 5, 10) }
