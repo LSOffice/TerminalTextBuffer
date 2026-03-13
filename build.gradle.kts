@@ -1,5 +1,10 @@
 plugins {
     kotlin("jvm") version "2.2.20"
+    application
+}
+
+application {
+    mainClass.set("org.LSOffice.MainKt")
 }
 
 group = "org.LSOffice"
