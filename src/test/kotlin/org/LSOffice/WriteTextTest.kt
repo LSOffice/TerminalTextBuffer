@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class WriteTextTest {
-
     @Test
     fun `writeText places chars starting at cursor`() {
         val buf = TerminalBuffer(10, 3, 0)
@@ -26,7 +25,7 @@ class WriteTextTest {
     fun `writeText wraps to next row when col reaches width`() {
         val buf = TerminalBuffer(5, 3, 0)
         buf.writeText("ABCDE") // fills row 0
-        buf.writeText("X")    // should wrap to row 1 col 0
+        buf.writeText("X") // should wrap to row 1 col 0
         assertEquals('X', buf.getChar(0, 1))
         assertEquals(Pair(1, 1), buf.getCursorPosition())
     }
@@ -105,7 +104,7 @@ class WriteTextTest {
     @Test
     fun `fillLine clamps out-of-range row silently`() {
         val buf = TerminalBuffer(4, 3, 0)
-        buf.fillLine(-5, 'X')  // should clamp to row 0
+        buf.fillLine(-5, 'X') // should clamp to row 0
         assertEquals('X', buf.getChar(0, 0))
         buf.fillLine(99, 'Y') // should clamp to row 2
         assertEquals('Y', buf.getChar(0, 2))

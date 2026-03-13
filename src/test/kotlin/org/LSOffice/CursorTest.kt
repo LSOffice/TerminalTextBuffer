@@ -6,7 +6,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CursorTest {
-
     @Test
     fun `cursor starts at (0,0)`() {
         val buf = TerminalBuffer(10, 5, 0)

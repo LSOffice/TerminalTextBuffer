@@ -6,7 +6,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class TerminalBufferConstructionTest {
-
     @Test
     fun `dimensions are stored correctly`() {
         val buf = TerminalBuffer(80, 24, 100)

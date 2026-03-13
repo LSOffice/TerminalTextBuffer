@@ -6,7 +6,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class ContentAccessTest {
-
     @Test
     fun `getChar returns written char`() {
         val buf = TerminalBuffer(5, 3, 0)

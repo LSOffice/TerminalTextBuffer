@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ScrollbackTest {
-
     @Test
     fun `insertEmptyLineAtBottom adds empty line at bottom of screen`() {
         val buf = TerminalBuffer(5, 3, 10)
@@ -84,9 +83,12 @@ class ScrollbackTest {
     @Test
     fun `scrollback ordering oldest to newest`() {
         val buf = TerminalBuffer(1, 2, 5)
-        buf.fillLine(0, 'A'); buf.insertEmptyLineAtBottom()
-        buf.fillLine(0, 'B'); buf.insertEmptyLineAtBottom()
-        buf.fillLine(0, 'C'); buf.insertEmptyLineAtBottom()
+        buf.fillLine(0, 'A')
+        buf.insertEmptyLineAtBottom()
+        buf.fillLine(0, 'B')
+        buf.insertEmptyLineAtBottom()
+        buf.fillLine(0, 'C')
+        buf.insertEmptyLineAtBottom()
         // scrollback[0]=oldest, scrollback[last]=newest
         assertEquals("A", buf.getLine(0, fromScrollback = true))
         assertEquals("B", buf.getLine(1, fromScrollback = true))

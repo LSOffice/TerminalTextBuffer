@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class InsertTextTest {
-
     @Test
     fun `insertText shifts existing chars right`() {
         val buf = TerminalBuffer(5, 3, 0)

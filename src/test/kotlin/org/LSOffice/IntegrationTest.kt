@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class IntegrationTest {
-
     @Test
     fun `fill screen and scroll verifies getAllContent ordering`() {
         val buf = TerminalBuffer(3, 3, 10)
